@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Idioms Interactive</title>
+    <style>
+        :root {
+            --bg-color: #F2E8DC;
+            --text-color: #333;
+            --pink-paper: #E8A6D6;
+            --green-circle: #7CB99C;
+            --yellow-note: #F9C846;
+            --white-paper: #FDFDFD;
+            --accent-blue: #A2D2FF;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-hand: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: var(--font-main);
+            color: var(--text-color);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Layout & Navigation --- */
+        header {
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: var(--font-hand);
+            font-size: 2.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #444;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: var(--white-paper);
+            border: 2px solid #333;
+            padding: 10px 20px;
+            font-family: var(--font-hand);
+            font-weight: bold;
+            cursor: pointer;
+            transform: rotate(-1deg);
+            transition: all 0.2s;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            transform: rotate(1deg) scale(1.05);
+            background: var(--yellow-note);
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.2);
+        }
+
+        main {
+            flex: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+        }
+
+        /* --- Decorative Elements (Scrapbook Style) --- */
+        .deco-circle {
+            position: fixed;
+            width: 150px;
+            height: 150px;
+            background-color: var(--green-circle);
+            border-radius: 50%;
+            bottom: -50px;
+            left: -50px;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .deco-stripes {
+            position: fixed;
+            top: -20px;
+            left: -20px;
+            width: 200px;
+            height: 150px;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--pink-paper),
+                var(--pink-paper) 10px,
+                #D695C5 10px,
+                #D695C5 20px
+            );
+            transform: rotate(-15deg);
+            z-index: -1;
+            clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 95%);
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.1);
+        }
+
+        .hand-pointer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-size: 4rem;
+            transform: rotate(45deg);
+            z-index: 0;
+            opacity: 0.8;
+            animation: point 2s infinite alternate;
+        }
+
+        @keyframes point {
+            from { transform: rotate(45deg) translateX(0); }
+            to { transform: rotate(45deg) translateX(10px); }
+        }
+
+        /* --- Content Sections --- */
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Flashcards --- */
+        .card-container {
+            perspective: 1000px;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 500px;
+            height: 350px;
+            cursor: pointer;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #333;
+        }
+
+        .card-front {
+            background-color: var(--white-paper);
+            background-image: radial-gradient(#ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .card-back {
+            background-color: var(--yellow-note);
+            transform: rotateY(180deg);
+            font-family: var(--font-hand);
+        }
+
+        .idiom-emoji {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .idiom-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #222;
+        }
+
+        .idiom-meaning {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .idiom-example {
+            font-style: italic;
+            color: #555;
+            background: rgba(255,255,255,0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: var(--font-hand);
+        }
+
+        /* --- Quiz --- */
+        .quiz-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
+            border: 2px solid #333;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #eee;
+            border: 2px solid #ccc;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover {
+            background: #ddd;
+            border-color: #aaa;
+        }
+
+        .option-btn.correct {
+            background: #a5d6a7;
+            border-color: #4caf50;
+        }
+
+        .option-btn.wrong {
+            background: #ef9a9a;
+            border-color: #f44336;
+        }
+
+        /* --- Compass --- */
+        .compass-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            height: 400px;
+            position: relative;
+        }
+
+        .compass-quadrant {
+            background: rgba(255,255,255,0.8);
+            border: 2px dashed #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: 0.3s;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .compass-quadrant:hover {
+            background: var(--accent-blue);
+            transform: scale(1.02);
+            z-index: 2;
+        }
+
+        .compass-label {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .compass-content {
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        
+        .compass-quadrant:hover .compass-content {
+            opacity: 1;
+        }
+
+        .compass-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #333;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 5;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        /* --- Exit Ticket --- */
+        .exit-form {
+            background: var(--pink-paper);
+            padding: 30px;
+            transform: rotate(1deg);
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            max-width: 600px;
+            margin: 0 auto;
+            clip-path: polygon(
+                0% 0%, 100% 2%, 98% 100%, 2% 98%
+            );
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-family: var(--font-hand);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #333;
+            background: rgba(255,255,255,0.9);
+            font-family: var(--font-main);
+            border-radius: 5px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+        }
+
+        .submit-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-family: var(--font-hand);
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: #555;
+        }
+
+        /* --- Intro --- */
+        .intro-container {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .definition-box {
+            background: var(--white-paper);
+            border: 2px solid #333;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+        }
+
+        .start-btn {
+            background: var(--green-circle);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: var(--font-hand);
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .compass-wrapper {
+                height: 300px;
+            }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="deco-stripes"></div>
+    <div class="deco-circle"></div>
+    <div class="hand-pointer">👈</div>
+
+    <header>
+        <h1>Understanding Idioms</h1>
+        <nav>
+            <button class="nav-btn active" onclick="showSection('intro')">Intro</button>
+            <button class="nav-btn" onclick="showSection('learn')">Learn Cards</button>
+            <button class="nav-btn" onclick="showSection('quiz')">Quiz Time</button>
+            <button class="nav-btn" onclick="showSection('compass')">Compass</button>
+            <button class="nav-btn" onclick="showSection('exit')">Exit Ticket</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Intro Section -->
+        <section id="intro" class="section active">
+            <div class="intro-container">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🗣️💬</div>
+                <h2>Meanings, Context, and Usage</h2>
+                
+                <div class="definition-box">
+                    <h3>What Are Idioms?</h3>
+                    <ul style="text-align: left; padding-left: 20px;">
+                        <li>Fixed phrases with non-literal meanings.</li>
+                        <li>Common in spoken English.</li>
+                        <li>Must be learned as chunks, not word-by-word.</li>
+                    </ul>
+                </div>
+
+                <div class="definition-box" style="background: var(--yellow-note); transform: rotate(1deg);">
+                    <strong>Opening Activity:</strong><br>
+                    Think of an idiom you've heard before.<br>
+                    <em>(e.g., "It's raining cats and dogs")</em>
+                </div>
+
+                <button class="start-btn" onclick="showSection('learn')">Start Learning</button>
+            </div>
+        </section>
+
+        <!-- Learn Section (Flashcards) -->
+        <section id="learn" class="section">
+            <h2 style="text-align: center; font-family: var(--font-hand);">Flip the card to learn!</h2>
+            <div class="card-container" onclick="flipCard()">
+                <div class="card" id="flashcard">
+                    <!-- Content injected via JS -->
+                </div>
+            </div>
+            <div class="controls">
+                <button class="control-btn" onclick="prevCard(event)">❮ Previous</button>
+                <span id="card-counter" style="align-self: center; font-weight: bold;">1/6</span>
+                <button class="control-btn" onclick="nextCard(event)">Next ❯</button>
+            </div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section id="quiz" class="section">
+            <h2 style="text-align: center;">Match the Situation</h2>
+            <div class="quiz-container">
+                <div id="quiz-content">
+                    <p class="question-text" id="question-text">Loading...</p>
+                    <div class="options-grid" id="options-grid">
+                        <!-- Options injected via JS -->
+                    </div>
+                </div>
+                <div id="quiz-feedback" style="margin-top: 20px; font-weight: bold; height: 20px;"></div>
+                <button class="control-btn" style="margin-top: 20px; display: none;" id="next-q-btn" onclick="nextQuestion()">Next Question</button>
+            </div>
+        </section>
+
+        <!-- Compass Section -->
+        <section id="compass" class="section">
+            <h2 style="text-align: center;">Discussion Compass</h2>
+            <p style="text-align: center; font-style: italic;">Hover over a corner to see the idiom.</p>
+            <div class="compass-wrapper">
+                <div class="compass-center">?</div>
+                
+                <div class="compass-quadrant" style="border-bottom: none; border-right: none;">
+                    <div class="compass-label">NORTH</div>
+                    <div class="compass-content">
+                        <strong>"Not out of the woods yet"</strong><br>
+                        Making progress, but challenges remain.
+                    </div>
+                </div>
+                
+                <div class="compass-quadrant" style="border-bottom: none; border-left: none;">
+                    <div class="compass-label">EAST</div>
+                    <div class="compass-content">
+                        <strong>"My heart sank"</strong><br>
+                        Expressing sudden disappointment.
+                    </div>
+                </div>
+                
+                <div class="compass-quadrant" style="border-top: none; border-right: none;">
+                    <div class="compass-label">WEST</div>
+                    <div class="compass-content">
+                        <strong>"Put your foot in it"</strong><br>
+                        Making a social mistake or embarrassing comment.
+                    </div>
+                </div>
+                
+                <div class="compass-quadrant" style="border-top: none; border-left: none;">
+                    <div class="compass-label">SOUTH</div>
+                    <div class="compass-content">
+                        <strong>"Take a back seat"</strong><br>
+                        Letting others lead or take charge.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Exit Ticket Section -->
+        <section id="exit" class="section">
+            <h2 style="text-align: center;">Reflect on Your Learning</h2>
+            <div class="exit-form">
+                <div class="form-group">
+                    <label>Which idiom will you try to use this week?</label>
+                    <select id="exit-select">
+                        <option>Not out of the woods yet</option>
+                        <option>Take a back seat</option>
+                        <option>My heart sank</option>
+                        <option>Put your foot in it</option>
+                        <option>Got out of bed on wrong side</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Create your own example sentence:</label>
+                    <textarea rows="3" placeholder="e.g., I wanted to help, but I decided to take a back seat..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Confidence Level (1-5):</label>
+                    <div class="slider-container">
+                        <span>😟</span>
+                        <input type="range" min="1" max="5" value="3">
+                        <span>😎</span>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="submitExitTicket()">Submit Reflection</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- Data ---
+        const idioms = [
+            {
+                phrase: "Not out of the woods yet",
+                meaning: "Not yet free from difficulties; the situation is still challenging.",
+                example: "\"The situation is improving, but we're not out of the woods yet.\"",
+                emoji: "🌲😰",
+                context: "Use when progress is made but danger remains."
+            },
+            {
+                phrase: "Take a back seat",
+                meaning: "To deliberately become less actively involved and let others lead.",
+                example: "\"I'll probably take a back seat and let Marco do most of the work.\"",
+                emoji: "💺🔙",
+                context: "Use when you decide to let someone else take charge."
+            },
+            {
+                phrase: "My heart sank",
+                meaning: "To suddenly feel sad, worried, or disappointed.",
+                example: "\"My heart sank when I saw the hotel room they'd given us.\"",
+                emoji: "💔📉",
+                context: "Describes a sudden negative emotional reaction."
+            },
+            {
+                phrase: "More than likely",
+                meaning: "Very likely or probable.",
+                example: "\"Will they lose? More than likely.\"",
+                emoji: "👍🎲",
+                context: "A common way to say 'probably'."
+            },
+            {
+                phrase: "Got out of bed on the wrong side",
+                meaning: "Used to say someone is in a bad mood for no clear reason.",
+                example: "\"I think Ann got out of bed on the wrong side this morning.\"",
+                emoji: "🛏️😠",
+                context: "Humorous way to describe grumpiness."
+            },
+            {
+                phrase: "Put your foot in it",
+                meaning: "To accidentally say something that embarrasses or upsets someone.",
+                example: "\"Oh dear. I put my foot in it by asking about his ex-wife.\"",
+                emoji: "🦶🙊",
+                context: "Social awkwardness or accidental insults."
+            }
+        ];
+
+        // --- Navigation ---
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            // Find button that calls this function (rough approximation)
+            const btns = document.querySelectorAll('.nav-btn');
+            if(id === 'intro') btns[0].classList.add('active');
+            if(id === 'learn') btns[1].classList.add('active');
+            if(id === 'quiz') btns[2].classList.add('active');
+            if(id === 'compass') btns[3].classList.add('active');
+            if(id === 'exit') btns[4].classList.add('active');
+        }
+
+        // --- Flashcards Logic ---
+        let currentCardIndex = 0;
+
+        function renderCard() {
+            const card = document.getElementById('flashcard');
+            const data = idioms[currentCardIndex];
+            
+            // Reset flip
+            card.classList.remove('flipped');
+
+            // Wait a tiny bit for flip reset before changing content if needed, 
+            // but here we rebuild the HTML structure
+            card.innerHTML = `
+                <div class="card-face card-front">
+                    <div class="idiom-emoji">${data.emoji}</div>
+                    <div class="idiom-title">${data.phrase}</div>
+                    <div style="margin-top:10px; color:#666; font-size:0.9rem;">(Click to flip)</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="idiom-title" style="font-size:1.4rem; margin-bottom:10px;">${data.phrase}</div>
+                    <div class="idiom-meaning">${data.meaning}</div>
+                    <div class="idiom-example">${data.example}</div>
+                    <div style="margin-top:10px; font-size:0.8rem;"><strong>Context:</strong> ${data.context}</div>
+                </div>
+            `;
+            
+            document.getElementById('card-counter').innerText = `${currentCardIndex + 1}/${idioms.length}`;
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function nextCard(e) {
+            e.stopPropagation();
+            if (currentCardIndex < idioms.length - 1) {
+                currentCardIndex++;
+                renderCard();
+            } else {
+                currentCardIndex = 0; // Loop
+                renderCard();
+            }
+        }
+
+        function prevCard(e) {
+            e.stopPropagation();
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                renderCard();
+            } else {
+                currentCardIndex = idioms.length - 1; // Loop
+                renderCard();
+            }
+        }
+
+        // --- Quiz Logic ---
+        let currentQuizIndex = 0;
+        let score = 0;
+        // Create quiz questions based on idioms
+        const quizQuestions = [
+            {
+                q: "Your friend is grumpy this morning for no reason. You might say:",
+                correct: "Got out of bed on the wrong side",
+                options: ["Put your foot in it", "Take a back seat", "Got out of bed on the wrong side", "Not out of the woods yet"]
+            },
+            {
+                q: "You accidentally mentioned a secret party to the person it was for! You:",
+                correct: "Put your foot in it",
+                options: ["Took a back seat", "Put your foot in it", "Had your heart sink", "Were hard pressed"]
+            },
+            {
+                q: "The project is going better, but there are still problems to solve. We are:",
+                correct: "Not out of the woods yet",
+                options: ["Not out of the woods yet", "More than likely", "Taking a back seat", "Sore point"]
+            },
+            {
+                q: "You decide to let your colleague lead the meeting while you just listen. You are:",
+                correct: "Taking a back seat",
+                options: ["Putting your foot in it", "Taking a back seat", "Getting out of bed wrong", "Sinking your heart"]
+            }
+        ];
+
+        function renderQuiz() {
+            const qData = quizQuestions[currentQuizIndex];
+            document.getElementById('question-text').innerText = qData.q;
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            document.getElementById('quiz-feedback').innerText = '';
+            document.getElementById('next-q-btn').style.display = 'none';
+
+            // Shuffle options
+            const shuffledOptions = [...qData.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(btn, opt, qData.correct);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btn, selected, correct) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.onclick = null);
+
+            if (selected === correct) {
+                btn.classList.add('correct');
+                document.getElementById('quiz-feedback').innerText = "Correct! 🎉";
+                document.getElementById('quiz-feedback').style.color = "green";
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                document.getElementById('quiz-feedback').innerText = `Oops! The answer was "${correct}"`;
+                document.getElementById('quiz-feedback').style.color = "red";
+                // Highlight correct
+                buttons.forEach(b => {
+                    if (b.innerText === correct) b.classList.add('correct');
+                });
+            }
+            document.getElementById('next-q-btn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizQuestions.length) {
+                renderQuiz();
+            } else {
+                // End of quiz
+                document.getElementById('quiz-content').innerHTML = `
+                    <h3>Quiz Complete!</h3>
+                    <p>You got ${score} out of ${quizQuestions.length} correct.</p>
+                    <div style="font-size:3rem;">🏆</div>
+                    <button class="control-btn" onclick="resetQuiz()">Try Again</button>
+                `;
+                document.getElementById('next-q-btn').style.display = 'none';
+                document.getElementById('quiz-feedback').innerText = '';
+            }
+        }
+
+        function resetQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            // Re-render structure
+            document.getElementById('quiz-content').innerHTML = `
+                <p class="question-text" id="question-text">Loading...</p>
+                <div class="options-grid" id="options-grid"></div>
+            `;
+            renderQuiz();
+        }
+
+        // --- Exit Ticket ---
+        function submitExitTicket() {
+            const btn = document.querySelector('.submit-btn');
+            const originalText = btn.innerText;
+            
+            btn.innerText = "Submitted! ✨";
+            btn.style.background = "#4caf50";
+            
+            // Confetti effect (Simple CSS/JS simulation)
+            for(let i=0; i<20; i++) {
+                createConfetti();
+            }
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "#333";
+                alert("Great job reflecting on your learning today!");
+            }, 2000);
+        }
+
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.innerText = ['🎉', '✨', '📝', '⭐'][Math.floor(Math.random()*4)];
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.top = '-10px';
+            confetti.style.fontSize = Math.random() * 20 + 10 + 'px';
+            confetti.style.transition = 'top 2s ease-in, opacity 2s ease-in';
+            confetti.style.zIndex = 1000;
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+                confetti.style.top = '110vh';
+                confetti.style.opacity = '0';
+            }, 100);
+
+            setTimeout(() => {
+                confetti.remove();
+            }, 2000);
+        }
+
+        // Initialize
+        renderCard();
+        renderQuiz();
+
+    </script>
+</body>
+</html>
